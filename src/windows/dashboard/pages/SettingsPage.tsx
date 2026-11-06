@@ -118,6 +118,7 @@ export function SettingsPage() {
   }, []);
 
   if (!settings) return null;
+  const windows = info?.platform === "windows";
   const set = (fn: (s: Settings) => void) =>
     void update((s) => {
       fn(s);
@@ -267,10 +268,23 @@ export function SettingsPage() {
             <Row title="Notify when a session ends">
               <Toggle label="Notifications" checked={settings.notifications.enabled} onChange={(v) => set((s) => void (s.notifications.enabled = v))} />
             </Row>
-            <Row title="Play a sound" hint="Played by your notification server from the system sound theme.">
+            <Row title="Play a sound" hint={windows ? "Played by Windows with the notification." : "Played by your notification server from the system sound theme."}>
               <Toggle label="Sound" checked={settings.notifications.sound} onChange={(v) => set((s) => void (s.notifications.sound = v))} />
             </Row>
-            <Row title="Sound name" hint={<>freedesktop sound name, e.g. <span className="num">complete</span>, <span className="num">bell</span>, <span className="num">message-new-instant</span></>}>
+            <Row
+              title="Sound name"
+              hint={
+                windows ? (
+                  <>
+                    One of <span className="num">Default</span>, <span className="num">Reminder</span>, <span className="num">IM</span>, <span className="num">Mail</span>, <span className="num">SMS</span>
+                  </>
+                ) : (
+                  <>
+                    freedesktop sound name, e.g. <span className="num">complete</span>, <span className="num">bell</span>, <span className="num">message-new-instant</span>
+                  </>
+                )
+              }
+            >
               <input
                 key={settings.notifications.soundName}
                 defaultValue={settings.notifications.soundName}
@@ -310,10 +324,12 @@ export function SettingsPage() {
               );
             })}
             <div className="mt-4 rounded-sm border border-line bg-surface px-4 py-3 text-[12.5px] leading-relaxed text-ink-2">
-              <div className="mb-1 font-medium text-ink">{info?.wayland ? "You're on Wayland" : "Wayland & desktop shortcuts"}</div>
+              <div className="mb-1 font-medium text-ink">{info?.wayland ? "You're on Wayland" : windows ? "Running from scripts" : "Wayland & desktop shortcuts"}</div>
               {info?.wayland
                 ? "Wayland doesn't let apps grab keys globally, so the shortcuts above only fire while a tempo window is focused. Bind these commands in your desktop's shortcut settings instead:"
-                : "On Wayland, or if a shortcut clashes with your desktop, bind these commands in your desktop's shortcut settings:"}
+                : windows
+                  ? "Ctrl+Alt is the same as AltGr on many keyboard layouts, so a default may block typing a character like @ or €. Pick another combination if so. tempo also takes commands, for AutoHotkey or a Stream Deck:"
+                  : "On Wayland, or if a shortcut clashes with your desktop, bind these commands in your desktop's shortcut settings:"}
               <ul className="mt-2 space-y-1">
                 {SHORTCUT_FIELDS.map((f) => {
                   const cmd = `tempo --action ${f.action}`;

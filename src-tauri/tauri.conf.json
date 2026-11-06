@@ -30,11 +30,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": [
-      "deb",
-      "rpm",
-      "appimage"
-    ],
+    "targets": "all",
     "category": "Productivity",
     "shortDescription": "A quiet Pomodoro timer and task list",
     "longDescription": "tempo is a local-first Pomodoro timer and lightweight task manager with independent floating overlays, built for the Linux desktop.",
@@ -42,7 +38,8 @@
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
-      "icons/icon.png"
+      "icons/icon.icns",
+      "icons/icon.ico"
     ],
     "linux": {
       "deb": {
@@ -60,6 +57,11 @@
           "libayatana-appindicator-gtk3"
         ],
         "desktopTemplate": "../packaging/tempo.desktop"
+      }
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
       }
     }
   }

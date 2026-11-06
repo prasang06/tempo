@@ -84,7 +84,7 @@ export const QuickAdd = forwardRef<HTMLInputElement, Props>(function QuickAdd(
         )}
       </div>
       {!compact && (
-        <div className="flex h-6 items-center gap-1.5 pb-1.5 pl-5 text-[11px] text-ink-3">
+        <div className="flex h-6 items-center gap-1.5 overflow-hidden whitespace-nowrap pb-1.5 pl-5 text-[11px] text-ink-3">
           {chips.length > 0 ? (
             chips.map((c) => (
               <span key={c} className="rounded-[3px] bg-accent-soft px-1.5 py-px text-accent">
@@ -92,9 +92,8 @@ export const QuickAdd = forwardRef<HTMLInputElement, Props>(function QuickAdd(
               </span>
             ))
           ) : (
-            <span className="opacity-0 transition-opacity group-focus-within:opacity-100">
-              <span className="num">~45m</span> estimate · <span className="num">!h</span> priority · <span className="num">#project</span> ·{" "}
-              <span className="num">@tomorrow</span>
+            <span className="num truncate text-[10px] opacity-0 transition-opacity group-focus-within:opacity-100" title="~45m estimate · !h/!m/!l priority · #project · @tomorrow or @mon">
+              ~45m · !h · #project · @tomorrow
             </span>
           )}
         </div>

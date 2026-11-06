@@ -112,13 +112,17 @@ impl TimerSettings {
 pub struct Notifications {
     pub enabled: bool,
     pub sound: bool,
-    /// freedesktop sound-theme name, played by the notification server.
+    /// Platform sound name; see [`DEFAULT_SOUND`].
     pub sound_name: String,
 }
 
+/// Linux takes a freedesktop sound-theme name; Windows takes a toast sound
+/// (Default, IM, Mail, Reminder, SMS) and silently ignores anything else.
+pub const DEFAULT_SOUND: &str = if cfg!(windows) { "Reminder" } else { "complete" };
+
 impl Default for Notifications {
     fn default() -> Self {
-        Self { enabled: true, sound: true, sound_name: "complete".into() }
+        Self { enabled: true, sound: true, sound_name: DEFAULT_SOUND.into() }
     }
 }
 

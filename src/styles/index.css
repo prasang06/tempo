@@ -118,9 +118,12 @@ textarea {
   background: var(--accent-soft);
 }
 
-:focus-visible {
-  outline: 1.5px solid var(--accent);
-  outline-offset: 1px;
+/* In a layer so utilities like outline-none can still override it. */
+@layer base {
+  :focus-visible {
+    outline: 1.5px solid var(--accent);
+    outline-offset: 1px;
+  }
 }
 
 * {
@@ -128,26 +131,29 @@ textarea {
   scrollbar-color: var(--line-strong) transparent;
 }
 
-.num {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-}
+/* Components layer: utilities on the same element win. */
+@layer components {
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
 
-/* small uppercase mono label — section headers, metadata */
-.label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
+  /* small uppercase mono label — section headers, metadata */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
 
-.display {
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
+  .display {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

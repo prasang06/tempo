@@ -317,6 +317,7 @@ pub fn overlay_reset_position(app: AppHandle, state: State<'_, AppState>, label:
 #[tauri::command]
 pub fn session_info() -> serde_json::Value {
     serde_json::json!({
+        "platform": std::env::consts::OS,
         "wayland": is_wayland(),
         "desktop": std::env::var("XDG_CURRENT_DESKTOP").unwrap_or_default(),
     })

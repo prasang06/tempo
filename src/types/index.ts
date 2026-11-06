@@ -131,6 +131,7 @@ export interface OverlayPrefs {
 }
 
 export interface SessionInfo {
+  platform: "linux" | "windows" | "macos" | string;
   wayland: boolean;
   desktop: string;
 }
