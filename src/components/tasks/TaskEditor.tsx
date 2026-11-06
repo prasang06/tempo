@@ -37,7 +37,7 @@ export function TaskEditor({ task, onClose }: { task: Task; onClose: () => void 
   const done = task.completedAt !== null;
 
   return (
-    <aside className="flex h-full w-[340px] shrink-0 flex-col border-l border-line bg-surface" aria-label="Task details">
+    <aside className="absolute inset-y-0 right-0 z-10 flex h-full w-[340px] shrink-0 flex-col border-l border-line bg-surface shadow-[-12px_0_24px_rgb(0_0_0/0.25)] xl:static xl:shadow-none" aria-label="Task details">
       <div className="flex h-11 items-center justify-between border-b border-line px-4">
         <span className="label">Task</span>
         <IconButton label="Close (Esc)" onClick={onClose}>

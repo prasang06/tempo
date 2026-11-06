@@ -26,7 +26,7 @@ export function Sidebar({ page, onNavigate }: { page: Page; onNavigate: (p: Page
   const { prefs, setVisible } = useOverlays();
 
   return (
-    <nav className="flex h-full w-[196px] shrink-0 flex-col border-r border-line bg-surface" aria-label="Sections">
+    <nav className="flex h-full w-[176px] shrink-0 flex-col border-r border-line bg-surface xl:w-[196px]" aria-label="Sections">
       <div className="flex h-14 items-center px-5">
         <Wordmark size={17} />
       </div>

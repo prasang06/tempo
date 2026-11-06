@@ -1,0 +1,28 @@
+[Desktop Entry]
+Type=Application
+Name=tempo
+GenericName=Focus timer
+Comment=A quiet Pomodoro timer and task list
+Exec=tempo
+Icon=tempo
+Terminal=false
+Categories=Utility;Office;ProjectManagement;
+Keywords=pomodoro;timer;focus;tasks;todo;
+StartupWMClass=tempo
+Actions=pause-resume;new-focus;toggle-floating;quick-tasks;
+
+[Desktop Action pause-resume]
+Name=Pause / resume timer
+Exec=tempo --action pause-resume
+
+[Desktop Action new-focus]
+Name=New focus session
+Exec=tempo --action new-focus
+
+[Desktop Action toggle-floating]
+Name=Toggle floating timer
+Exec=tempo --action toggle-floating
+
+[Desktop Action quick-tasks]
+Name=Quick tasks
+Exec=tempo --action quick-tasks

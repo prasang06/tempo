@@ -136,7 +136,7 @@ export function SettingsPage() {
 
   return (
     <div className="flex min-h-0 flex-1">
-      <nav className="w-[188px] shrink-0 border-r border-line px-2 py-7" aria-label="Settings sections">
+      <nav className="w-[168px] shrink-0 border-r border-line px-2 py-7 xl:w-[188px]" aria-label="Settings sections">
         <h1 className="display mb-4 px-3 text-[22px]">Settings</h1>
         {SECTIONS.map(([id, label]) => (
           <button
@@ -150,7 +150,7 @@ export function SettingsPage() {
         ))}
       </nav>
 
-      <div ref={scroller} className="min-w-0 flex-1 overflow-y-auto px-10 pt-8">
+      <div ref={scroller} className="min-w-0 flex-1 overflow-y-auto px-6 pt-8 xl:px-10">
         <div className="max-w-[640px]">
           {(error || note) && (
             <div className="mb-4">
@@ -234,7 +234,7 @@ export function SettingsPage() {
                     </div>
                     <Toggle label={`Show ${o.name}`} checked={p?.visible ?? false} onChange={(v) => void overlays.setVisible(o.label, v)} />
                   </div>
-                  <div className="mt-2.5 flex items-center gap-6 text-[12px] text-ink-2">
+                  <div className="mt-2.5 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] text-ink-2">
                     <label className="flex items-center gap-2">
                       <Toggle label={`${o.name} always on top`} checked={p?.alwaysOnTop ?? false} onChange={(v) => void overlays.update(o.label, { alwaysOnTop: v })} />
                       Always on top

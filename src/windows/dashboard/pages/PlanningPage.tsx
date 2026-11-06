@@ -119,12 +119,12 @@ export function PlanningPage() {
   );
 
   return (
-    <div className="flex min-h-0 flex-1">
+    <div className="relative flex min-h-0 flex-1">
       <section className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-end justify-between gap-4 border-b border-line px-8 pb-4 pt-7">
+        <header className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-line px-6 pb-4 pt-7 xl:px-8">
           <div>
             <h1 className="display text-[26px]">Planning</h1>
-            <p className="mt-1 flex items-center gap-1.5 text-[12.5px] text-ink-3">
+            <p className="mt-1 hidden items-center gap-1.5 text-[12.5px] text-ink-3 lg:flex">
               Drag tasks onto a day, or select one and use <Kbd>←</Kbd>
               <Kbd>→</Kbd> <Kbd>T</Kbd> today <Kbd>U</Kbd> unschedule
             </p>
@@ -143,7 +143,7 @@ export function PlanningPage() {
         </header>
 
         <div className="flex min-h-0 flex-1">
-          <div className={cx("flex w-[220px] shrink-0 flex-col overflow-y-auto border-r border-line px-3 py-4", dropTarget === BACKLOG && "bg-accent-soft")} {...dropProps(BACKLOG)}>
+          <div className={cx("flex w-[180px] shrink-0 flex-col overflow-y-auto border-r border-line px-3 py-4 xl:w-[220px]", dropTarget === BACKLOG && "bg-accent-soft")} {...dropProps(BACKLOG)}>
             {unfinished.length > 0 && (
               <div className="mb-5">
                 <div className="mb-2 flex items-center justify-between px-1">
@@ -163,7 +163,7 @@ export function PlanningPage() {
             </div>
           </div>
 
-          <div className="grid min-w-0 flex-1 grid-cols-7">
+          <div className="grid min-w-0 flex-1 grid-cols-[repeat(7,minmax(118px,1fr))] overflow-x-auto">
             {days.map((d) => {
               const list = byDay.get(d) ?? [];
               const est = list.filter(isOpen).reduce((a, t) => a + (t.estimateMin ?? 0), 0);

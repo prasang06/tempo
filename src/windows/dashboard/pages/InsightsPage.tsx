@@ -14,7 +14,7 @@ type Range = "week" | "month" | "year";
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="border-r border-line px-6 py-4 last:border-r-0">
+    <div className="min-w-0 border-r border-line px-6 py-4 last:border-r-0 max-lg:[&:nth-child(2)]:border-r-0 max-lg:[&:nth-child(-n+2)]:border-b">
       <div className="label">{label}</div>
       <div className="num mt-1.5 text-[22px] leading-none">{value}</div>
       {sub && <div className="mt-1.5 text-[11.5px] text-ink-3">{sub}</div>}
@@ -113,7 +113,7 @@ export function InsightsPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-      <header className="flex items-end justify-between gap-4 px-8 pb-4 pt-7">
+      <header className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 px-8 pb-4 pt-7">
         <div>
           <h1 className="display text-[26px]">Insights</h1>
           <div className="mt-1 flex items-center gap-2 text-[13px] text-ink-3">
@@ -142,7 +142,7 @@ export function InsightsPage() {
       </header>
       {error && <p className="px-8 text-[12.5px] text-danger">{error}</p>}
 
-      <div className="mx-8 grid grid-cols-4 border-y border-line">
+      <div className="mx-8 grid grid-cols-2 border-y border-line lg:grid-cols-4">
         <Stat label="Focus time" value={duration(totalMs)} sub={activeDays ? `${duration(totalMs / activeDays)} per active day` : "no sessions yet"} />
         <Stat label="Completed sessions" value={String(completed.length)} />
         <Stat label="Completion rate" value={focus.length ? `${completionRate}%` : "—"} sub={focus.length ? `${focus.length - completed.length} cut short` : undefined} />
@@ -164,7 +164,7 @@ export function InsightsPage() {
         </div>
       </section>
 
-      <div className="mx-8 mt-8 grid grid-cols-2 gap-10">
+      <div className="mx-8 mt-8 grid grid-cols-1 gap-10 lg:grid-cols-2">
         <section>
           <h2 className="label mb-3">By project</h2>
           {byProject.length === 0 && <p className="text-[12.5px] text-ink-3">Link tasks to projects to see where time goes.</p>}

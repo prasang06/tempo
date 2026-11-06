@@ -117,6 +117,9 @@ impl std::fmt::Display for TimerError {
 
 pub type Transition = Result<Option<SessionRecord>, TimerError>;
 
+/// Sessions cut short before this much time has run are not recorded.
+pub const MIN_RECORDED_MS: i64 = 60_000;
+
 impl TimerState {
     pub fn new(config: &TimerConfig) -> Self {
         let duration_ms = config.duration(SessionKind::Focus);
@@ -288,6 +291,10 @@ impl TimerState {
             _ => return None,
         };
         let actual = (self.duration_ms - self.remaining_at(now)).max(0);
+        // A start that's undone within a minute is a misclick, not history.
+        if actual < MIN_RECORDED_MS {
+            return None;
+        }
         Some(SessionRecord {
             id,
             kind: self.kind,
@@ -424,6 +431,15 @@ mod tests {
         assert_eq!((t.status, t.remaining_ms, t.kind), (Status::Idle, 25 * MIN, SessionKind::Focus));
         assert_eq!(t.task_id.as_deref(), Some("task"), "task link survives a reset");
         assert!(t.reset(8 * MIN, &c).unwrap().is_none(), "resetting idle records nothing");
+    }
+
+    #[test]
+    fn misclick_starts_are_not_recorded() {
+        let c = cfg();
+        let mut t = TimerState::new(&c);
+        t.start(0, id(1)).unwrap();
+        assert!(t.reset(MIN_RECORDED_MS - 1, &c).unwrap().is_none());
+        assert_eq!(t.status, Status::Idle);
     }
 
     #[test]

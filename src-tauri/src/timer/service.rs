@@ -215,13 +215,14 @@ mod tests {
     #[test]
     fn session_for_deleted_task_is_still_recorded() {
         let db = Arc::new(Db::open_in_memory().unwrap());
-        let svc = TimerService::load(db.clone(), cfg()).unwrap();
+        let config = TimerConfig { focus_ms: 600_000, ..cfg() };
+        let svc = TimerService::load(db.clone(), config).unwrap();
         svc.apply(|s, _, _| {
             s.set_task(Some("missing".into()));
             Ok(None)
         })
         .unwrap();
-        svc.apply(|s, _, now| s.start(now - 300, "x".into())).unwrap();
+        svc.apply(|s, _, now| s.start(now - 300_000, "x".into())).unwrap();
         let (_, rec) = svc.apply(|s, c, now| s.reset(now, c)).unwrap();
         assert!(rec.is_some());
         let task: Option<String> =

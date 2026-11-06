@@ -1,0 +1,46 @@
+# Maintainer: Prasang
+# Builds tempo from a tagged release. The package is named tempo-focus because
+# "tempo" is already taken on the AUR (Grafana Tempo); the binary is still `tempo`.
+pkgname=tempo-focus
+_name=tempo
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="A quiet Pomodoro timer and task list for the Linux desktop"
+arch=('x86_64' 'aarch64')
+url="https://github.com/prasang06/tempo"
+license=('MIT')
+depends=('webkit2gtk-4.1' 'gtk3' 'libayatana-appindicator' 'hicolor-icon-theme')
+makedepends=('rust' 'cargo' 'nodejs' 'pnpm')
+conflicts=('tempo')
+options=('!lto')
+source=("$_name-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "$_name-$pkgver"
+  pnpm install --frozen-lockfile
+  cd src-tauri
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$_name-$pkgver"
+  export CARGO_TARGET_DIR=target
+  pnpm tauri build --no-bundle -- --frozen
+}
+
+check() {
+  cd "$_name-$pkgver/src-tauri"
+  cargo test --frozen --lib
+}
+
+package() {
+  cd "$_name-$pkgver"
+  install -Dm755 src-tauri/target/release/tempo "$pkgdir/usr/bin/tempo"
+  install -Dm644 packaging/tempo.desktop "$pkgdir/usr/share/applications/tempo.desktop"
+  install -Dm644 src-tauri/icons/32x32.png "$pkgdir/usr/share/icons/hicolor/32x32/apps/tempo.png"
+  install -Dm644 src-tauri/icons/128x128.png "$pkgdir/usr/share/icons/hicolor/128x128/apps/tempo.png"
+  install -Dm644 src-tauri/icons/128x128@2x.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/tempo.png"
+  install -Dm644 assets/icon.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/tempo.svg"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

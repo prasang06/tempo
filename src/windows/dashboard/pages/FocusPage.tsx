@@ -56,7 +56,8 @@ export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
     const ms = focus.filter((s) => s.endedAt >= from && s.endedAt < from + 86_400_000).reduce((a, s) => a + s.actualMs, 0);
     return { day: weekday(addDays(new Date(weekStart), i)), ms, isToday: from === dayStart };
   });
-  const weekMax = Math.max(...week.map((d) => d.ms), 1);
+  // Floor of an hour so a few minutes doesn't read as a full day.
+  const weekMax = Math.max(...week.map((d) => d.ms), 3_600_000);
 
   useHotkeys(
     {
@@ -73,11 +74,11 @@ export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
   const cyclePos = snapshot ? snapshot.cycle % interval : 0;
 
   return (
-    <div className="flex min-h-0 flex-1">
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
       <section className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-end justify-between gap-4 px-10 pb-2 pt-8">
+        <header className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 px-6 pb-2 pt-8 xl:px-10">
           <div>
-            <h1 className="display text-[26px]">{longDate(new Date(dayStart))}</h1>
+            <h1 className="display whitespace-nowrap text-[26px]">{longDate(new Date(dayStart))}</h1>
             <p className="mt-1 text-[13px] text-ink-3">
               {todayCount} session{todayCount === 1 ? "" : "s"} · {duration(todayMs)} focused
             </p>
@@ -92,7 +93,7 @@ export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
           )}
         </header>
 
-        <div className="flex flex-1 flex-col justify-center px-10">
+        <div className="flex flex-1 flex-col justify-center px-6 py-8 xl:px-10">
           <div className="mx-auto w-full max-w-[540px]">
             <div className="flex gap-5" role="tablist" aria-label="Session type">
               {KINDS.map((k) => (
@@ -105,7 +106,7 @@ export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
                   title={!idle ? "Reset or skip to change session type" : undefined}
                   onClick={() => idle && void run(() => timerApi.selectKind(k))}
                   className={cx(
-                    "border-b pb-1 text-[12.5px] transition-colors disabled:cursor-not-allowed",
+                    "whitespace-nowrap border-b pb-1 text-[12.5px] transition-colors disabled:cursor-not-allowed",
                     snapshot?.kind === k ? "border-accent text-ink" : "border-transparent text-ink-3 hover:text-ink-2 disabled:hover:text-ink-3",
                   )}
                 >
@@ -117,7 +118,7 @@ export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
             <div className="mt-6 flex items-baseline justify-between">
               <div
                 className={cx("num font-light leading-none tracking-[-0.06em]", snapshot?.status === "paused" ? "text-ink-2" : "text-ink")}
-                style={{ fontSize: remaining >= 3_600_000 ? 84 : 108 }}
+                style={{ fontSize: remaining >= 3_600_000 ? "clamp(52px, 7.5vw, 84px)" : "clamp(64px, 9.5vw, 108px)" }}
                 aria-live="off"
               >
                 {clock(remaining)}
@@ -132,7 +133,7 @@ export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
             <TickRuler className="mt-5" progress={progress} active={snapshot?.status === "running"} ticks={Math.min(60, Math.max(25, Math.round((snapshot?.durationMs ?? 0) / 60_000)))} />
 
             <div className="mt-7 flex items-center gap-3">
-              <span className="text-[12.5px] text-ink-3">Working on</span>
+              <span className="whitespace-nowrap text-[12.5px] text-ink-3">Working on</span>
               <Select
                 className="max-w-[340px] flex-1"
                 value={snapshot?.taskId ?? ""}
@@ -151,7 +152,7 @@ export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
               </Select>
             </div>
 
-            <div className="mt-6 flex items-center justify-between">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
               <TimerControls snapshot={snapshot} onToggle={toggle} onReset={reset} onSkip={skip} hints />
               <div className="flex items-center gap-1.5" title={`Long break after ${interval} focus sessions`}>
                 {Array.from({ length: interval }, (_, i) => (
@@ -162,10 +163,10 @@ export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
           </div>
         </div>
 
-        <footer className="grid grid-cols-[1.4fr_0.7fr_1.3fr] border-t border-line">
-          <div className="border-r border-line px-10 py-4">
-            <div className="label">Focus today</div>
-            <div className="mt-1.5 flex items-baseline gap-1.5">
+        <footer className="grid shrink-0 grid-cols-[1.3fr_0.7fr_1.4fr] border-y border-line lg:border-b-0">
+          <div className="min-w-0 border-r border-line px-6 py-4 xl:px-10">
+            <div className="label whitespace-nowrap">Focus today</div>
+            <div className="mt-1.5 flex items-baseline gap-1.5 whitespace-nowrap">
               <span className="num text-[20px]">{duration(todayMs)}</span>
               {goalMs > 0 && <span className="text-[12px] text-ink-3">of {duration(goalMs)}</span>}
             </div>
@@ -175,12 +176,12 @@ export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
               </div>
             )}
           </div>
-          <div className="border-r border-line px-6 py-4">
-            <div className="label">Sessions</div>
+          <div className="min-w-0 border-r border-line px-5 py-4">
+            <div className="label whitespace-nowrap">Sessions</div>
             <div className="num mt-1.5 text-[20px]">{todayCount}</div>
           </div>
-          <button type="button" onClick={() => onNavigate("insights")} className="group px-6 py-4 text-left hover:bg-hover/50">
-            <div className="label group-hover:text-ink-2">This week →</div>
+          <button type="button" onClick={() => onNavigate("insights")} className="group min-w-0 px-5 py-4 text-left hover:bg-hover/50">
+            <div className="label whitespace-nowrap group-hover:text-ink-2">This week →</div>
             <div className="mt-2 flex h-[34px] items-end gap-2">
               {week.map((d, i) => (
                 <div key={i} className="flex flex-1 flex-col items-center gap-1" title={`${d.day}: ${duration(d.ms)}`}>
@@ -198,7 +199,7 @@ export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
       {editingTask ? (
         <TaskEditor task={editingTask} onClose={() => setEditing(null)} />
       ) : (
-        <aside className="flex w-[360px] shrink-0 flex-col border-l border-line" aria-label="Today's tasks">
+        <aside className="flex w-full shrink-0 flex-col lg:w-[320px] lg:border-l lg:border-line xl:w-[360px]" aria-label="Today's tasks">
           <div className="flex items-baseline justify-between px-5 pb-1 pt-8">
             <h2 className="display text-[17px]">Today</h2>
             <span className="num text-[11px] text-ink-3">
@@ -208,7 +209,7 @@ export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
           <div className="px-5">
             <QuickAdd ref={addRef} defaults={{ scheduledDate: today }} placeholder="Add a task for today" />
           </div>
-          <div className="flex-1 overflow-y-auto px-3 pt-1">
+          <div className="flex-1 px-3 pb-6 pt-1 lg:overflow-y-auto">
             <TaskList
               tasks={list}
               today={today}

@@ -68,8 +68,8 @@ export function TasksPage() {
     view.kind === "today" ? { scheduledDate: today } : view.kind === "project" ? { projectId: view.id } : undefined;
 
   return (
-    <div className="flex min-h-0 flex-1">
-      <div className="flex w-[188px] shrink-0 flex-col border-r border-line py-6">
+    <div className="relative flex min-h-0 flex-1">
+      <div className="flex w-[168px] shrink-0 flex-col border-r border-line py-6 xl:w-[188px]">
         <ul className="space-y-px px-2">
           {views.map((v) => (
             <li key={v.label}>
@@ -148,7 +148,7 @@ export function TasksPage() {
       </div>
 
       <section className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-end justify-between gap-4 px-8 pb-3 pt-7">
+        <header className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 px-6 pb-3 pt-7 xl:px-8">
           <div className="flex items-center gap-3">
             {project && (
               <label className="relative size-3 cursor-pointer rounded-full" style={{ background: project.color }} title="Change colour">
@@ -197,11 +197,11 @@ export function TasksPage() {
           )}
         </header>
         {view.kind !== "completed" && (
-          <div className="px-8">
+          <div className="px-6 xl:px-8">
             <QuickAdd ref={addRef} defaults={defaults} placeholder={`Add to ${title}`} onCreated={(t) => setSelected(t.id)} />
           </div>
         )}
-        <div className="flex-1 overflow-y-auto px-6 pb-6 pt-1">
+        <div className="flex-1 overflow-y-auto px-4 pb-6 pt-1 xl:px-6">
           <TaskList
             tasks={shown}
             today={today}
