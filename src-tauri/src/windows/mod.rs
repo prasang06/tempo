@@ -170,7 +170,8 @@ fn build(app: &AppHandle, spec: OverlaySpec, prefs: &OverlayPrefs) -> AppResult<
         .skip_taskbar(true)
         .always_on_top(prefs.always_on_top)
         .focused(false)
-        .visible(true);
+        .visible(true)
+        .disable_drag_drop_handler();
     if let (Some(x), Some(y), false) = (prefs.x, prefs.y, is_wayland()) {
         b = b.position(f64::from(x), f64::from(y));
     }

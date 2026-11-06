@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+@import "@fontsource/schibsted-grotesk/400.css";
+@import "@fontsource/schibsted-grotesk/500.css";
+@import "@fontsource/schibsted-grotesk/600.css";
+@import "@fontsource/schibsted-grotesk/700.css";
+@import "@fontsource/schibsted-grotesk/400-italic.css";
+@import "@fontsource/martian-mono/300.css";
+@import "@fontsource/martian-mono/400.css";
+@import "@fontsource/martian-mono/500.css";
+
+/* ── tokens ─────────────────────────────────────────────────────────── */
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0b0f;
+  --surface: #131319;
+  --elevated: #1c1c24;
+  --hover: #22222b;
+  --line: #24242e;
+  --line-strong: #33333f;
+  --text: #ededf2;
+  --text-2: #a0a0aa;
+  --text-3: #6c6c78;
+  --accent: #9b7cff;
+  --accent-hover: #b79dff;
+  --accent-ink: #0d0b14;
+  --accent-soft: rgb(155 124 255 / 0.13);
+  --accent-line: rgb(155 124 255 / 0.35);
+  --danger: #ef7d84;
+  --ok: #8fcfa4;
+  --overlay-rgb: 19 19 25;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f1e9;
+  --surface: #faf8f3;
+  --elevated: #ffffff;
+  --hover: #ece8de;
+  --line: #e2ddd0;
+  --line-strong: #cfc8b8;
+  --text: #1b1a20;
+  --text-2: #5d5b65;
+  --text-3: #8d8a93;
+  --accent: #6a4dd6;
+  --accent-hover: #5a3ec2;
+  --accent-ink: #ffffff;
+  --accent-soft: rgb(106 77 214 / 0.1);
+  --accent-line: rgb(106 77 214 / 0.35);
+  --danger: #c2434c;
+  --ok: #3f8a57;
+  --overlay-rgb: 250 248 243;
+}
+
+@theme inline {
+  --font-sans: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Martian Mono", ui-monospace, monospace;
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-hover: var(--hover);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--text);
+  --color-ink-2: var(--text-2);
+  --color-ink-3: var(--text-3);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-line: var(--accent-line);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+}
+
+/* ── base ───────────────────────────────────────────────────────────── */
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+  user-select: none;
+  cursor: default;
+  overflow: hidden;
+}
+
+/* Overlay windows are transparent; their panel draws its own background. */
+html.overlay,
+html.overlay body {
+  background: transparent;
+}
+
+input,
+textarea {
+  user-select: text;
+  cursor: text;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--accent);
+  outline-offset: 1px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* small uppercase mono label — section headers, metadata */
+.label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.display {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
