@@ -1,5 +1,5 @@
 import { Check, Minus, Plus } from "lucide-react";
-import type { ButtonHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
+import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from "react";
 
 export function cx(...parts: (string | false | null | undefined)[]): string {
   return parts.filter(Boolean).join(" ");
@@ -142,6 +142,15 @@ export function Stepper({
   label: string;
 }) {
   const set = (v: number) => onChange(Math.min(max, Math.max(min, v)));
+  // Typing is local; the value is committed on Enter or blur, not on every keystroke.
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  const commit = () => {
+    const n = Number(draft);
+    if (draft.trim() === "" || !Number.isFinite(n)) setDraft(String(value));
+    else if (Math.round(n) !== value) set(Math.round(n));
+    else setDraft(String(value));
+  };
   return (
     <div className="inline-flex h-8 items-center rounded-sm border border-line-strong" aria-label={label}>
       <button type="button" aria-label={`decrease ${label}`} className="grid h-full w-7 place-items-center text-ink-3 hover:text-ink disabled:opacity-30" disabled={value <= min} onClick={() => set(value - step)}>
@@ -150,11 +159,16 @@ export function Stepper({
       <input
         aria-label={label}
         className="num h-full w-10 bg-transparent text-center text-[12px] outline-none"
-        value={value}
+        value={draft}
         inputMode="numeric"
-        onChange={(e) => {
-          const n = Number(e.target.value.replace(/\D/g, ""));
-          if (!Number.isNaN(n) && n > 0) set(n);
+        onChange={(e) => setDraft(e.target.value.replace(/\D/g, ""))}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.currentTarget.blur();
+          if (e.key === "Escape") {
+            setDraft(String(value));
+            e.currentTarget.blur();
+          }
         }}
       />
       {suffix && <span className="pr-1 text-[11px] text-ink-3">{suffix}</span>}

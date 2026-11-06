@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import type { Page } from "@/components/navigation/Sidebar";
-import { cx, Kbd, Segmented, Select } from "@/components/common/ui";
+import { cx, Kbd, Segmented, Select, Stepper } from "@/components/common/ui";
 import { TickRuler } from "@/components/timer/TickRuler";
 import { TimerControls } from "@/components/timer/Controls";
 import { QuickAdd } from "@/components/tasks/QuickAdd";
@@ -16,7 +16,7 @@ import { timer as timerApi } from "@/services/api";
 import { clock, duration, KIND_LABEL } from "@/lib/time";
 import { addDays, dayKey, longDate, startOfDay, startOfWeek, timeOfDay, weekday } from "@/lib/dates";
 import { isOpen, todayTasks } from "@/lib/tasks";
-import type { Profile, SessionKind } from "@/types";
+import type { Profile, SessionKind, Settings } from "@/types";
 
 const PROFILES: { value: Profile; label: string; hint: string }[] = [
   { value: "classic", label: "Classic", hint: "25 min focus · 5 min break" },
@@ -26,6 +26,18 @@ const PROFILES: { value: Profile; label: string; hint: string }[] = [
 ];
 
 const KINDS: SessionKind[] = ["focus", "short_break", "long_break"];
+
+const PRESETS: Record<Exclude<Profile, "custom">, [number, number, number]> = {
+  classic: [25, 5, 15],
+  deep: [50, 10, 20],
+  extended: [90, 15, 30],
+};
+
+/** Length a session of `kind` gets under the current settings (mirrors the backend). */
+function profileMs(t: Settings["timer"], kind: SessionKind): number {
+  const [f, s, l] = t.profile === "custom" ? [t.focusMin, t.shortBreakMin, t.longBreakMin] : PRESETS[t.profile];
+  return (kind === "focus" ? f : kind === "short_break" ? s : l) * 60_000;
+}
 
 export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
   const { snapshot, remaining, progress, toggle, reset, skip, run } = useTimerView();
@@ -92,6 +104,39 @@ export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
             />
           )}
         </header>
+        {settings?.timer.profile === "custom" && (
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-6 pt-3 text-[12px] text-ink-3 xl:px-10">
+            {(
+              [
+                ["focusMin", "Focus", 240, 5],
+                ["shortBreakMin", "Short break", 120, 1],
+                ["longBreakMin", "Long break", 120, 5],
+              ] as const
+            ).map(([key, label, max, step]) => (
+              <label key={key} className="flex items-center gap-2 whitespace-nowrap">
+                {label}
+                <Stepper
+                  label={`${label} minutes`}
+                  value={settings.timer[key]}
+                  min={1}
+                  max={max}
+                  step={step}
+                  suffix="min"
+                  onChange={(v) => void update((s) => ({ ...s, timer: { ...s.timer, [key]: v } }))}
+                />
+              </label>
+            ))}
+          </div>
+        )}
+        {snapshot && !idle && settings && profileMs(settings.timer, snapshot.kind) !== snapshot.durationMs && (
+          <p className="px-6 pt-3 text-[12px] text-ink-3 xl:px-10">
+            This {KIND_LABEL[snapshot.kind].toLowerCase()} keeps its {duration(snapshot.durationMs)} length; the new one starts next
+            session.{" "}
+            <button type="button" className="text-ink-2 underline decoration-line-strong underline-offset-2 hover:text-ink" onClick={reset}>
+              Reset to use {duration(profileMs(settings.timer, snapshot.kind))} now
+            </button>
+          </p>
+        )}
 
         <div className="flex flex-1 flex-col justify-center px-6 py-8 xl:px-10">
           <div className="mx-auto w-full max-w-[540px]">

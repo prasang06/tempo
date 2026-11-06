@@ -230,6 +230,15 @@ mod tests {
     }
 
     #[test]
+    fn custom_profile_uses_custom_durations() {
+        let mut t = TimerSettings { focus_min: 40, short_break_min: 7, long_break_min: 25, ..Default::default() };
+        assert_eq!(t.to_config().focus_ms, 25 * 60_000, "presets ignore custom fields");
+        t.profile = Profile::Custom;
+        let c = t.to_config();
+        assert_eq!((c.focus_ms, c.short_break_ms, c.long_break_ms), (40 * 60_000, 7 * 60_000, 25 * 60_000));
+    }
+
+    #[test]
     fn rejects_bad_durations() {
         let mut s = Settings::default();
         s.timer.focus_min = 0;
