@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "All tempo windows talk to the backend through its own commands only.",
+  "windows": ["main", "floating-timer", "quick-tasks", "mini-session"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-minimize",
+    "core:window:allow-close",
+    "core:window:allow-hide"
+  ]
+}
