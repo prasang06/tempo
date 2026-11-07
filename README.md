@@ -60,13 +60,29 @@ sudo apt install ./tempo_0.1.0_amd64.deb
 chmod +x tempo_0.1.0_amd64.AppImage && ./tempo_0.1.0_amd64.AppImage
 ```
 
-**Windows**
+**Windows 10 / 11**
 
-Run `tempo_0.1.0_x64-setup.exe` (installs for your user only, no admin needed) or the
-`.msi`. Both need Microsoft Edge WebView2, which ships with Windows 10 and 11; the
-installer fetches it if it's missing.
+1. **Download.** Open the repo's [Actions tab](https://github.com/prasang06/tempo/actions/workflows/build.yml),
+   click the latest green *build* run, and download **tempo-Windows** under *Artifacts*
+   (you need to be signed in to GitHub). Unzip it.
+2. **Install.** Pick one:
 
-Installers are produced by the GitHub Actions build (see [Building](#building)).
+   | File | Installs to | Admin? |
+   |---|---|---|
+   | `nsis/tempo_0.1.0_x64-setup.exe` (recommended) | `%LOCALAPPDATA%\tempo` | no |
+   | `msi/tempo_0.1.0_x64_en-US.msi` | `C:\Program Files\tempo` | yes |
+
+3. **Get past SmartScreen.** The installers aren't code-signed yet, so Windows shows
+   *"Windows protected your PC"*. Click **More info → Run anyway**.
+4. **Run.** Start tempo from the Start menu. Windows hides new tray icons, so click the
+   **^** arrow in the taskbar and drag tempo's icon out to keep it visible.
+
+tempo needs Microsoft Edge WebView2. It's part of Windows 10 (since 2021) and 11; if it's
+missing, the setup `.exe` installs it for you.
+
+- **Updating:** run the newer installer over the old one. Your data is kept.
+- **Uninstalling:** Settings → Apps → Installed apps → tempo → Uninstall. Your data stays
+  in `%APPDATA%\dev.tempo.app` until you delete that folder yourself.
 
 ## Keyboard
 
