@@ -1,7 +1,8 @@
 //! Claude Code activity. Claude Code's hooks run `tempo --claude-hook <port file>`,
 //! which forwards a few fields of the hook's JSON to the running app over localhost.
-//! Nothing here talks to Anthropic or reads prompts, so it costs no tokens.
+//! Nothing here talks to Anthropic, so it costs no tokens.
 
+pub mod capture;
 pub mod hooks;
 
 use std::collections::HashMap;
@@ -28,6 +29,8 @@ const MAX_MESSAGE: u64 = 16 * 1024;
 const STALE_MS: i64 = 6 * 60 * 60_000;
 /// Short replies don't deserve a "finished" notification.
 const NOTIFY_AFTER_MS: i64 = 30_000;
+/// Long pastes keep their start; that's enough for a task's notes.
+const MAX_PROMPT: usize = 4000;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -67,6 +70,16 @@ pub struct HookMessage {
     pub notification_type: Option<String>,
     #[serde(default)]
     pub title: Option<String>,
+    /// UserPromptSubmit: what you asked, cut to [`MAX_PROMPT`] characters.
+    #[serde(default)]
+    pub prompt: Option<String>,
+    /// TaskCreated / TaskCompleted: an item on Claude's own task list.
+    #[serde(default)]
+    pub task_id: Option<String>,
+    #[serde(default)]
+    pub task_subject: Option<String>,
+    #[serde(default)]
+    pub task_description: Option<String>,
     /// When the hook fired. Hooks run async, so messages can arrive out of order.
     pub at: i64,
 }
@@ -91,6 +104,12 @@ impl Activity {
         let mut list: Vec<_> = map.values().cloned().collect();
         list.sort_by_key(|s| std::cmp::Reverse(s.updated));
         list
+    }
+
+    /// The session finished a turn after `at`: a late prompt hook whose Stop already came.
+    pub fn done_since(&self, session_id: &str, at: i64) -> bool {
+        let map = self.sessions.lock().unwrap_or_else(|e| e.into_inner());
+        map.get(session_id).is_some_and(|s| s.status == AgentStatus::Done && s.since >= at)
     }
 
     /// Applies one hook message. Returns `None` when nothing visible changed.
@@ -194,10 +213,28 @@ fn read_message(stream: TcpStream) -> Option<HookMessage> {
 
 fn handle(app: &AppHandle, msg: &HookMessage) {
     let state = app.state::<AppState>();
+    let prefs = state.settings().claude;
+    if prefs.capture_tasks {
+        let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+        let conn = state.db.conn();
+        let mut result = capture::apply(&conn, msg, &today);
+        if msg.event == "UserPromptSubmit" && state.claude.done_since(&msg.session_id, msg.at) {
+            let stop = HookMessage { event: "Stop".into(), ..msg.clone() };
+            result = result.and_then(|a| Ok(capture::apply(&conn, &stop, &today)? || a));
+        }
+        drop(conn);
+        match result {
+            Ok(true) => {
+                let _ = app.emit(crate::tasks::CHANGED_EVENT, ());
+            }
+            Ok(false) => {}
+            Err(e) => log::warn!("could not record claude task: {e}"),
+        }
+    }
+
     let Some(change) = state.claude.apply(msg) else { return };
     let _ = app.emit(ACTIVITY_EVENT, state.claude.list(now_ms()));
 
-    let prefs = state.settings().claude;
     match change {
         Some(Change::Started(_)) if prefs.auto_focus && state.timer.snapshot().state.status == Status::Idle => {
             if let Err(e) = crate::timer::start_focus(app, &state) {
@@ -241,7 +278,7 @@ pub fn run_hook(port_file: Option<&str>) -> i32 {
     0
 }
 
-/// Keeps only what tempo shows. Prompts and replies are never forwarded.
+/// Keeps only what tempo uses. Claude's replies and tool input are never forwarded.
 fn parse_hook_input(input: &str, at: i64) -> Option<HookMessage> {
     let v: serde_json::Value = serde_json::from_str(input).ok()?;
     let s = |k: &str| v.get(k).and_then(|x| x.as_str()).map(str::to_owned);
@@ -251,6 +288,10 @@ fn parse_hook_input(input: &str, at: i64) -> Option<HookMessage> {
         cwd: s("cwd").unwrap_or_default(),
         notification_type: s("notification_type"),
         title: s("session_title"),
+        prompt: s("prompt").map(|p| p.chars().take(MAX_PROMPT).collect()),
+        task_id: s("task_id"),
+        task_subject: s("task_subject"),
+        task_description: s("task_description"),
         at,
     })
 }
@@ -288,6 +329,10 @@ mod tests {
             cwd: "/home/me/code/tempo".into(),
             notification_type: None,
             title: None,
+            prompt: None,
+            task_id: None,
+            task_subject: None,
+            task_description: None,
             at,
         }
     }
@@ -329,11 +374,13 @@ mod tests {
     }
 
     #[test]
-    fn hook_input_drops_prompt_text() {
-        let raw = r#"{"session_id":"abc","cwd":"/x/y","hook_event_name":"UserPromptSubmit","prompt":"secret plans"}"#;
+    fn hook_input_keeps_only_what_tempo_uses() {
+        let raw = r#"{"session_id":"abc","cwd":"/x/y","hook_event_name":"Stop","last_assistant_message":"secret reply"}"#;
         let m = parse_hook_input(raw, 7).unwrap();
-        assert_eq!((m.event.as_str(), m.session_id.as_str(), m.at), ("UserPromptSubmit", "abc", 7));
+        assert_eq!((m.event.as_str(), m.session_id.as_str(), m.at), ("Stop", "abc", 7));
         assert!(!serde_json::to_string(&m).unwrap().contains("secret"));
+        let long = format!(r#"{{"session_id":"a","hook_event_name":"UserPromptSubmit","prompt":"{}"}}"#, "x".repeat(MAX_PROMPT * 2));
+        assert_eq!(parse_hook_input(&long, 0).unwrap().prompt.unwrap().len(), MAX_PROMPT);
         assert!(parse_hook_input("not json", 0).is_none());
     }
 }

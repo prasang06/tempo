@@ -1,21 +1,29 @@
 import { create } from "zustand";
 import { claude as api, EVENTS, on } from "@/services/api";
-import type { AgentSession, AgentStatus } from "@/types";
+import type { AgentSession, AgentStatus, HookStatus } from "@/types";
 
 interface ClaudeStore {
   sessions: AgentSession[];
+  hooks: HookStatus | null;
   init: () => Promise<void>;
+  /** Connect or disconnect Claude Code's hooks. */
+  setConnected: (on: boolean) => Promise<void>;
 }
 
 let started = false;
 
 export const useClaude = create<ClaudeStore>((set) => ({
   sessions: [],
+  hooks: null,
   init: async () => {
     if (started) return;
     started = true;
     await on<AgentSession[]>(EVENTS.claude, (sessions) => set({ sessions }));
     set({ sessions: await api.activity() });
+    api.hooksStatus().then((hooks) => set({ hooks }), () => {});
+  },
+  setConnected: async (on) => {
+    set({ hooks: await (on ? api.installHooks() : api.removeHooks()) });
   },
 }));
 

@@ -11,7 +11,16 @@ use super::HOOK_FLAG;
 use crate::error::{AppError, AppResult};
 
 /// The events tempo listens to. PostToolUse is how it sees work resume after a prompt.
-const EVENTS: [&str; 6] = ["SessionStart", "UserPromptSubmit", "PostToolUse", "Notification", "Stop", "SessionEnd"];
+const EVENTS: [&str; 8] = [
+    "SessionStart",
+    "UserPromptSubmit",
+    "PostToolUse",
+    "Notification",
+    "Stop",
+    "SessionEnd",
+    "TaskCreated",
+    "TaskCompleted",
+];
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

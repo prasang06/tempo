@@ -63,4 +63,14 @@ pub const MIGRATIONS: &[&str] = &[
         state  TEXT NOT NULL
     );
     "#,
+    // 2 — tempo tasks made from Claude Code prompts and Claude's own task list
+    r#"
+    CREATE TABLE claude_links (
+        key         TEXT PRIMARY KEY,
+        session_id  TEXT NOT NULL,
+        kind        TEXT NOT NULL CHECK (kind IN ('prompt', 'task')),
+        task_id     TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE
+    );
+    CREATE INDEX idx_claude_links_session ON claude_links(session_id);
+    "#,
 ];

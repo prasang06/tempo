@@ -100,6 +100,12 @@ working, waiting on a permission prompt, or done. Each session appears in the si
 by project, and the floating timer swaps its task line for "Claude needs you" when one
 is blocked.
 
+What you ask Claude also lands in **Tasks**, filed under a project named after the
+folder and scheduled for today. Each prompt of four words or more becomes a task that is
+checked off when Claude finishes the turn (short replies like "yes" and slash commands
+are skipped). Tasks Claude adds to its own task list are mirrored and checked off when
+Claude completes them. Turn this off in Settings → Claude Code.
+
 Settings → Claude Code → **Connect** adds a set of hooks to `~/.claude/settings.json`
 (or `$CLAUDE_CONFIG_DIR`), keeping everything else in the file and saving a
 `settings.json.tempo-backup` first. **Disconnect** takes them out again. Already-running
@@ -107,9 +113,9 @@ Claude Code sessions pick the hooks up when restarted.
 
 - **No tokens.** Hooks are local commands. They run asynchronously, print nothing, and
   never add anything to Claude's context.
-- **Nothing sensitive leaves Claude Code.** The hook sends tempo the event name, session
-  id and working directory over `127.0.0.1`. Prompts and replies are dropped before
-  anything is sent.
+- **Stays on your machine.** The hook passes tempo the event, session id, working
+  directory, your prompt (for the task) and Claude's task titles over `127.0.0.1`.
+  Claude's replies and tool input are dropped before anything is sent.
 - **Harmless when tempo is closed.** The hook exits immediately and never starts the app.
 
 Optional: a notification when Claude needs you or finishes a turn longer than 30 seconds

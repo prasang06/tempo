@@ -29,13 +29,16 @@ const AGENT_DOT: Record<AgentStatus, string> = {
   idle: "bg-line-strong",
 };
 
-/** Claude Code sessions reported by its hooks; hidden until one shows up. */
+/** Claude Code sessions reported by its hooks; hidden until hooks are connected. */
 function ClaudeActivity() {
-  const sessions = byUrgency(useClaude((s) => s.sessions)).slice(0, 3);
-  if (sessions.length === 0) return null;
+  const all = useClaude((s) => s.sessions);
+  const connected = useClaude((s) => s.hooks?.installed ?? false);
+  const sessions = byUrgency(all).slice(0, 3);
+  if (sessions.length === 0 && !connected) return null;
   return (
     <div className="border-t border-line px-5 py-3">
       <div className="label mb-2">Claude Code</div>
+      {sessions.length === 0 && <p className="text-[11.5px] leading-snug text-ink-3">No sessions yet. Start Claude Code and send a prompt.</p>}
       <ul className="space-y-1.5">
         {sessions.map((a) => (
           <li key={a.id} className="flex items-center gap-2 text-[12px]" title={a.cwd}>

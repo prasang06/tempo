@@ -175,11 +175,13 @@ pub struct ClaudeSettings {
     pub notify: bool,
     /// Start a focus session when a prompt is sent and the timer is idle.
     pub auto_focus: bool,
+    /// Add prompts and Claude's own tasks to the task list.
+    pub capture_tasks: bool,
 }
 
 impl Default for ClaudeSettings {
     fn default() -> Self {
-        Self { notify: true, auto_focus: false }
+        Self { notify: true, auto_focus: false, capture_tasks: true }
     }
 }
 

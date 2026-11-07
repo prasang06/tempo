@@ -99,7 +99,7 @@ export interface Settings {
     openMain: string;
   };
   system: { autostart: boolean; closeToTray: boolean; startHidden: boolean };
-  claude: { notify: boolean; autoFocus: boolean };
+  claude: { notify: boolean; autoFocus: boolean; captureTasks: boolean };
 }
 
 export type ActionName =
