@@ -7,6 +7,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useData } from "@/stores/data";
 import { useSettings } from "@/stores/settings";
 import { useOverlays } from "@/stores/overlays";
+import { useClaude } from "@/stores/claude";
 import { useTimer } from "@/stores/timer";
 import { FocusPage } from "./pages/FocusPage";
 import { TasksPage } from "./pages/TasksPage";
@@ -30,6 +31,7 @@ export default function Dashboard() {
     void useSettings.getState().init();
     void useOverlays.getState().init();
     void useTimer.getState().init();
+    void useClaude.getState().init();
     // `tempo --page insights` from the command line or a launcher.
     const off = on<string>("app://navigate", (p) => {
       const found = PAGES.find((x) => x.id === p);

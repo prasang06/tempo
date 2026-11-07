@@ -93,6 +93,28 @@ Write intro ~45m !h #thesis @tomorrow
 | `#name` | project (created if it doesn't exist) |
 | `@today` `@tomorrow` `@fri` `@2026-12-01` | scheduled day |
 
+### Claude Code
+
+tempo can show what your [Claude Code](https://code.claude.com) sessions are doing:
+working, waiting on a permission prompt, or done. Each session appears in the sidebar
+by project, and the floating timer swaps its task line for "Claude needs you" when one
+is blocked.
+
+Settings → Claude Code → **Connect** adds a set of hooks to `~/.claude/settings.json`
+(or `$CLAUDE_CONFIG_DIR`), keeping everything else in the file and saving a
+`settings.json.tempo-backup` first. **Disconnect** takes them out again. Already-running
+Claude Code sessions pick the hooks up when restarted.
+
+- **No tokens.** Hooks are local commands. They run asynchronously, print nothing, and
+  never add anything to Claude's context.
+- **Nothing sensitive leaves Claude Code.** The hook sends tempo the event name, session
+  id and working directory over `127.0.0.1`. Prompts and replies are dropped before
+  anything is sent.
+- **Harmless when tempo is closed.** The hook exits immediately and never starts the app.
+
+Optional: a notification when Claude needs you or finishes a turn longer than 30 seconds
+(on by default), and starting a focus session when you send a prompt (off by default).
+
 ### Light theme
 
 <img src="docs/screenshots/focus-light.png" alt="tempo in the light theme" width="900">
@@ -223,7 +245,8 @@ Everything is in one SQLite file:
 | Linux | `~/.local/share/dev.tempo.app/tempo.db` |
 | Windows | `%APPDATA%\dev.tempo.app\tempo.db` |
 
-tempo makes no network requests. Settings → Data exports everything (tasks, projects,
+tempo makes no network requests. The only socket it opens is a localhost listener for
+Claude Code's hooks. Settings → Data exports everything (tasks, projects,
 sessions, settings) to JSON and imports it back, for backups or moving to another machine.
 
 ## Build from source

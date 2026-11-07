@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { Button, cx, ErrorNote, Segmented, Stepper, Toggle } from "@/components/common/ui";
 import { useSettings } from "@/stores/settings";
 import { useOverlays } from "@/stores/overlays";
-import { EVENTS, errorMessage, on, overlays as overlayApi, settings as settingsApi, system } from "@/services/api";
-import type { ActionName, OverlayLabel, SessionInfo, Settings, ShortcutStatus } from "@/types";
+import { claude as claudeApi, EVENTS, errorMessage, on, overlays as overlayApi, settings as settingsApi, system } from "@/services/api";
+import type { ActionName, HookStatus, OverlayLabel, SessionInfo, Settings, ShortcutStatus } from "@/types";
 import { profileMinutes } from "@/lib/profiles";
 
 const SECTIONS = [
@@ -12,6 +12,7 @@ const SECTIONS = [
   ["timer", "Timer"],
   ["overlays", "Overlays"],
   ["notifications", "Notifications"],
+  ["claude", "Claude Code"],
   ["shortcuts", "Shortcuts"],
   ["system", "System"],
   ["data", "Data"],
@@ -107,6 +108,7 @@ export function SettingsPage() {
   const overlays = useOverlays();
   const [status, setStatus] = useState<ShortcutStatus[]>([]);
   const [info, setInfo] = useState<SessionInfo | null>(null);
+  const [hooks, setHooks] = useState<HookStatus | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [confirmImport, setConfirmImport] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
@@ -114,6 +116,7 @@ export function SettingsPage() {
   useEffect(() => {
     settingsApi.shortcutStatus().then(setStatus, () => {});
     system.info().then(setInfo, () => {});
+    claudeApi.hooksStatus().then(setHooks, () => {});
     const off = on(EVENTS.settings, () => settingsApi.shortcutStatus().then(setStatus, () => {}));
     return () => void off.then((f) => f());
   }, []);
@@ -307,6 +310,35 @@ export function SettingsPage() {
               <Button size="sm" onClick={() => void run(system.testNotification, () => null)}>
                 Test
               </Button>
+            </Row>
+          </Section>
+
+          <Section id="claude" title="Claude Code">
+            <Row
+              title={hooks?.installed ? (hooks.current ? "Connected" : "Connected to another copy of tempo") : "Connect Claude Code"}
+              hint={
+                <>
+                  Adds hooks to <span className="num">{hooks?.path ?? "~/.claude/settings.json"}</span> so tempo can show when Claude is working, needs
+                  you, or is done. They run on this machine and use no tokens; prompts and replies are never read. New Claude Code sessions pick them up.
+                </>
+              }
+            >
+              {hooks?.installed && (
+                <Button size="sm" onClick={() => void run(async () => setHooks(await claudeApi.removeHooks()), () => null)}>
+                  Disconnect
+                </Button>
+              )}
+              {!hooks?.current && (
+                <Button size="sm" variant="primary" onClick={() => void run(async () => setHooks(await claudeApi.installHooks()), () => null)}>
+                  {hooks?.installed ? "Update" : "Connect"}
+                </Button>
+              )}
+            </Row>
+            <Row title="Notify when Claude needs you or finishes" hint="Finished means a turn that ran at least 30 seconds.">
+              <Toggle label="Claude notifications" checked={settings.claude.notify} onChange={(v) => set((s) => void (s.claude.notify = v))} />
+            </Row>
+            <Row title="Start focus when you send a prompt" hint="Only when the timer is idle.">
+              <Toggle label="Start focus with Claude" checked={settings.claude.autoFocus} onChange={(v) => set((s) => void (s.claude.autoFocus = v))} />
             </Row>
           </Section>
 

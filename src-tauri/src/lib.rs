@@ -1,5 +1,6 @@
 mod actions;
 mod backup;
+mod claude;
 mod database;
 mod error;
 mod notifications;
@@ -30,6 +31,7 @@ pub struct AppState {
     pub settings: Mutex<Settings>,
     pub shortcut_status: Mutex<Vec<ShortcutStatus>>,
     pub tray: Mutex<Option<tray::TrayMenu>>,
+    pub claude: claude::Activity,
 }
 
 impl AppState {
@@ -39,6 +41,12 @@ impl AppState {
 }
 
 const HIDDEN_FLAG: &str = "--hidden";
+
+/// Runs as a Claude Code hook instead of the app when called with `--claude-hook`.
+pub fn run_claude_hook(args: &[String]) -> Option<i32> {
+    let i = args.iter().position(|a| a == claude::HOOK_FLAG)?;
+    Some(claude::run_hook(args.get(i + 1).map(String::as_str)))
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -76,6 +84,7 @@ pub fn run() {
                 settings: Mutex::new(settings.clone()),
                 shortcut_status: Mutex::new(Vec::new()),
                 tray: Mutex::new(None),
+                claude: claude::Activity::default(),
             });
             let state = app.state::<AppState>();
 
@@ -92,6 +101,9 @@ pub fn run() {
 
             timer::spawn_ticker(handle.clone());
             windows::restore(&handle);
+            if let Err(e) = claude::spawn_listener(handle.clone()) {
+                log::warn!("claude code activity unavailable: {e}");
+            }
 
             let args: Vec<String> = std::env::args().collect();
             let hidden = settings.system.start_hidden || args.iter().any(|a| a == HIDDEN_FLAG);
@@ -162,6 +174,10 @@ pub fn run() {
             notifications::notifications_test,
             backup::data_export,
             backup::data_import,
+            claude::claude_activity,
+            claude::claude_hooks_status,
+            claude::claude_hooks_install,
+            claude::claude_hooks_remove,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tempo");

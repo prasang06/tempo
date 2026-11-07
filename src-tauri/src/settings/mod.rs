@@ -14,6 +14,7 @@ pub struct Settings {
     pub notifications: Notifications,
     pub shortcuts: Shortcuts,
     pub system: System,
+    pub claude: ClaudeSettings,
 }
 
 impl Default for Settings {
@@ -24,6 +25,7 @@ impl Default for Settings {
             notifications: Notifications::default(),
             shortcuts: Shortcuts::default(),
             system: System::default(),
+            claude: ClaudeSettings::default(),
         }
     }
 }
@@ -163,6 +165,21 @@ pub struct System {
 impl Default for System {
     fn default() -> Self {
         Self { autostart: false, close_to_tray: true, start_hidden: false }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct ClaudeSettings {
+    /// Notify when a Claude Code session needs an answer or finishes a long turn.
+    pub notify: bool,
+    /// Start a focus session when a prompt is sent and the timer is idle.
+    pub auto_focus: bool,
+}
+
+impl Default for ClaudeSettings {
+    fn default() -> Self {
+        Self { notify: true, auto_focus: false }
     }
 }
 

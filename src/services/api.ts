@@ -1,6 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type {
+  AgentSession,
+  HookStatus,
   NewTask,
   OverlayLabel,
   OverlayPrefs,
@@ -22,6 +24,7 @@ export const EVENTS = {
   tasks: "tasks://changed",
   settings: "settings://changed",
   overlays: "overlays://changed",
+  claude: "claude://activity",
 } as const;
 
 export function on<T>(event: string, handler: (payload: T) => void): Promise<UnlistenFn> {
@@ -76,6 +79,13 @@ export const overlays = {
     invoke<OverlayPrefs>("overlay_update", { label, patch }),
   resetPosition: (label: OverlayLabel) => invoke<OverlayPrefs>("overlay_reset_position", { label }),
   contextMenu: (label: OverlayLabel) => invoke<void>("overlay_context_menu", { label }),
+};
+
+export const claude = {
+  activity: () => invoke<AgentSession[]>("claude_activity"),
+  hooksStatus: () => invoke<HookStatus>("claude_hooks_status"),
+  installHooks: () => invoke<HookStatus>("claude_hooks_install"),
+  removeHooks: () => invoke<HookStatus>("claude_hooks_remove"),
 };
 
 export const system = {

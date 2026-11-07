@@ -2,8 +2,9 @@ import { CalendarRange, ChartNoAxesColumn, CircleDot, ListTodo, Settings2 } from
 import { cx, Kbd, Wordmark } from "@/components/common/ui";
 import { useTimerView } from "@/hooks/useTimerView";
 import { useOverlays } from "@/stores/overlays";
-import { clock, KIND_LABEL } from "@/lib/time";
-import type { OverlayLabel } from "@/types";
+import { byUrgency, STATUS_LABEL, useClaude } from "@/stores/claude";
+import { clock, KIND_LABEL, shortDuration } from "@/lib/time";
+import type { AgentStatus, OverlayLabel } from "@/types";
 
 export type Page = "focus" | "tasks" | "planning" | "insights" | "settings";
 
@@ -20,6 +21,35 @@ const OVERLAY_BUTTONS: { label: OverlayLabel; name: string }[] = [
   { label: "quick-tasks", name: "Tasks" },
   { label: "mini-session", name: "Mini" },
 ];
+
+const AGENT_DOT: Record<AgentStatus, string> = {
+  waiting: "bg-accent",
+  working: "bg-ok",
+  done: "bg-ink-3",
+  idle: "bg-line-strong",
+};
+
+/** Claude Code sessions reported by its hooks; hidden until one shows up. */
+function ClaudeActivity() {
+  const sessions = byUrgency(useClaude((s) => s.sessions)).slice(0, 3);
+  if (sessions.length === 0) return null;
+  return (
+    <div className="border-t border-line px-5 py-3">
+      <div className="label mb-2">Claude Code</div>
+      <ul className="space-y-1.5">
+        {sessions.map((a) => (
+          <li key={a.id} className="flex items-center gap-2 text-[12px]" title={a.cwd}>
+            <span className={cx("size-1.5 shrink-0 rounded-full", AGENT_DOT[a.status])} />
+            <span className="min-w-0 flex-1 truncate text-ink-2">{a.title ?? a.project}</span>
+            <span className={cx("num shrink-0 text-[10.5px]", a.status === "waiting" ? "text-accent" : "text-ink-3")}>
+              {a.status === "working" ? shortDuration(Date.now() - a.since) : STATUS_LABEL[a.status]}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export function Sidebar({ page, onNavigate }: { page: Page; onNavigate: (p: Page) => void }) {
   const { snapshot, remaining } = useTimerView(1000);
@@ -70,6 +100,7 @@ export function Sidebar({ page, onNavigate }: { page: Page; onNavigate: (p: Page
             <span className="num text-[12px]">{clock(remaining)}</span>
           </button>
         )}
+        <ClaudeActivity />
         <div className="border-t border-line px-5 py-3">
           <div className="label mb-2">Overlays</div>
           <div className="flex gap-1">

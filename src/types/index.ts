@@ -99,6 +99,7 @@ export interface Settings {
     openMain: string;
   };
   system: { autostart: boolean; closeToTray: boolean; startHidden: boolean };
+  claude: { notify: boolean; autoFocus: boolean };
 }
 
 export type ActionName =
@@ -134,4 +135,22 @@ export interface SessionInfo {
   platform: "linux" | "windows" | "macos" | string;
   wayland: boolean;
   desktop: string;
+}
+
+export type AgentStatus = "idle" | "working" | "waiting" | "done";
+
+export interface AgentSession {
+  id: string;
+  project: string;
+  cwd: string;
+  title: string | null;
+  status: AgentStatus;
+  since: number;
+  updated: number;
+}
+
+export interface HookStatus {
+  path: string;
+  installed: boolean;
+  current: boolean;
 }
