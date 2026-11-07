@@ -35,3 +35,8 @@ lto = true
 opt-level = "s"
 panic = "abort"
 strip = true
+
+# Native right-click on overlays: ask the window manager for its own window menu
+# (KWin's has "Keep Above Others"). Same versions Tauri already uses.
+[target.'cfg(target_os = "linux")'.dependencies]
+gtk = "0.18"

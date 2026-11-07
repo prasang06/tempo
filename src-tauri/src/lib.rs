@@ -53,6 +53,9 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_autostart::Builder::new().arg(HIDDEN_FLAG).build())
+        .on_menu_event(|app, event| {
+            windows::handle_menu_event(app, event.id().as_ref());
+        })
         .setup(|app| {
             let handle = app.handle().clone();
             let db_path = app.path().app_data_dir()?.join("tempo.db");
@@ -142,6 +145,7 @@ pub fn run() {
             windows::overlay_set_visible,
             windows::overlay_update,
             windows::overlay_reset_position,
+            windows::overlay_context_menu,
             windows::session_info,
             notifications::notifications_test,
             backup::data_export,

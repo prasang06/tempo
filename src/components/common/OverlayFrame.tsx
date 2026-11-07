@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { overlays as overlayApi } from "@/services/api";
 import { useOverlays } from "@/stores/overlays";
 import { useSettings } from "@/stores/settings";
 import { useTheme } from "@/hooks/useTheme";
@@ -26,6 +27,12 @@ export function OverlayFrame({ label, children, className }: { label: OverlayLab
       data-tauri-drag-region
       className={cx("group/frame relative flex h-full flex-col overflow-hidden rounded-[10px] border border-line-strong", className)}
       style={{ background: `rgb(var(--overlay-rgb) / ${opacity})` }}
+      // On Linux the window manager's menu usually opens instead (handled natively);
+      // this is the fallback where it has none.
+      onContextMenu={(e) => {
+        e.preventDefault();
+        void overlayApi.contextMenu(label);
+      }}
     >
       {children}
       <button

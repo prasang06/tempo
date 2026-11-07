@@ -181,6 +181,9 @@ fn build(app: &AppHandle, spec: OverlaySpec, prefs: &OverlayPrefs) -> AppResult<
         let _ = win.set_position(PhysicalPosition::new(x, y));
     }
 
+    #[cfg(target_os = "linux")]
+    native_window_menu(&win);
+
     let handle = app.clone();
     let label = spec.label.to_string();
     win.on_window_event(move |event| {
@@ -197,6 +200,79 @@ fn build(app: &AppHandle, spec: OverlaySpec, prefs: &OverlayPrefs) -> AppResult<
         }
     });
     Ok(win)
+}
+
+/// Right-click opens the window manager's own menu for the overlay. On Wayland apps can't
+/// make themselves always-on-top, but the compositor's menu ("Keep Above Others" on KDE)
+/// can. Needs the real button event, since the compositor checks its serial. If the WM
+/// has no such menu, the click falls through to the webview, which shows tempo's menu.
+#[cfg(target_os = "linux")]
+fn native_window_menu(win: &WebviewWindow) {
+    use gtk::gdk;
+    use gtk::glib::Propagation;
+    use gtk::prelude::*;
+    let result = win.with_webview(|wv| {
+        wv.inner().connect_button_press_event(|widget, event| {
+            if event.button() != 3 || event.event_type() != gdk::EventType::ButtonPress {
+                return Propagation::Proceed;
+            }
+            let shown = widget
+                .toplevel()
+                .and_then(|top| top.window())
+                .is_some_and(|gw| gw.show_window_menu(&mut (**event).clone()));
+            if shown {
+                Propagation::Stop
+            } else {
+                Propagation::Proceed
+            }
+        });
+    });
+    if let Err(e) = result {
+        log::warn!("could not hook overlay right-click: {e}");
+    }
+}
+
+pub const MENU_PREFIX: &str = "overlay:";
+
+/// tempo's own right-click menu, used where the window manager has none.
+pub fn popup_menu(app: &AppHandle, label: &str) -> AppResult<()> {
+    use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
+    let spec = spec(label)?;
+    let win = app.get_webview_window(label).ok_or_else(|| AppError::NotFound(format!("overlay {label}")))?;
+    let prefs = load_prefs(&app.state::<AppState>().db.conn(), label)?;
+    let on_top = CheckMenuItem::with_id(app, format!("{MENU_PREFIX}top:{label}"), "Always on top", true, prefs.always_on_top, None::<&str>)?;
+    let hide = MenuItem::with_id(app, format!("{MENU_PREFIX}hide:{label}"), format!("Hide {}", spec.title.trim_start_matches("tempo — ")), true, None::<&str>)?;
+    let open = MenuItem::with_id(app, format!("{MENU_PREFIX}main:{label}"), "Open tempo", true, None::<&str>)?;
+    let menu = Menu::with_items(app, &[&on_top, &PredefinedMenuItem::separator(app)?, &open, &hide])?;
+    win.popup_menu(&menu)?;
+    Ok(())
+}
+
+/// Handles clicks from [`popup_menu`]. Returns false for ids that aren't ours.
+pub fn handle_menu_event(app: &AppHandle, id: &str) -> bool {
+    let Some(rest) = id.strip_prefix(MENU_PREFIX) else { return false };
+    let Some((what, label)) = rest.split_once(':') else { return false };
+    let result = match what {
+        "top" => {
+            let current = load_prefs(&app.state::<AppState>().db.conn(), label).map(|p| p.always_on_top).unwrap_or(false);
+            update(app, label, OverlayPatch { always_on_top: Some(!current), opacity: None }).map(drop)
+        }
+        "hide" => set_visible(app, label, false).map(drop),
+        "main" => {
+            show_main(app);
+            Ok(())
+        }
+        _ => Ok(()),
+    };
+    if let Err(e) = result {
+        log::warn!("overlay menu action failed: {e}");
+    }
+    true
+}
+
+#[tauri::command]
+pub fn overlay_context_menu(app: AppHandle, label: String) -> AppResult<()> {
+    popup_menu(&app, &label)
 }
 
 pub fn set_visible(app: &AppHandle, label: &str, visible: bool) -> AppResult<OverlayPrefs> {

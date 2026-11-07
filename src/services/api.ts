@@ -75,6 +75,7 @@ export const overlays = {
   update: (label: OverlayLabel, patch: { alwaysOnTop?: boolean; opacity?: number }) =>
     invoke<OverlayPrefs>("overlay_update", { label, patch }),
   resetPosition: (label: OverlayLabel) => invoke<OverlayPrefs>("overlay_reset_position", { label }),
+  contextMenu: (label: OverlayLabel) => invoke<void>("overlay_context_menu", { label }),
 };
 
 export const system = {

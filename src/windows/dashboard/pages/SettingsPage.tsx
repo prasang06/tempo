@@ -222,7 +222,9 @@ export function SettingsPage() {
           <Section id="overlays" title="Overlays">
             <p className="mb-2 text-[12.5px] leading-relaxed text-ink-3">
               Small independent windows that keep running when the main window is closed. Drag them by any empty area.
-              {info?.wayland && " On Wayland your compositor decides where they open and may ignore always-on-top; on KDE use a window rule to pin them."}
+              {info?.wayland
+                ? " Right-click an overlay for your desktop's window menu. Wayland doesn't let apps keep themselves on top or choose where they open, but that menu can. To make it stick, add a KDE window rule for the title “tempo — timer”."
+                : " Right-click an overlay for quick options."}
             </p>
             {OVERLAY_ROWS.map((o) => {
               const p = overlays.prefs[o.label];
@@ -236,10 +238,14 @@ export function SettingsPage() {
                     <Toggle label={`Show ${o.name}`} checked={p?.visible ?? false} onChange={(v) => void overlays.setVisible(o.label, v)} />
                   </div>
                   <div className="mt-2.5 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] text-ink-2">
-                    <label className="flex items-center gap-2">
-                      <Toggle label={`${o.name} always on top`} checked={p?.alwaysOnTop ?? false} onChange={(v) => void overlays.update(o.label, { alwaysOnTop: v })} />
-                      Always on top
-                    </label>
+                    {info?.wayland ? (
+                      <span className="text-ink-3">Always on top: right-click the overlay → {info.desktop.includes("KDE") ? "Keep Above Others" : "your window menu"}</span>
+                    ) : (
+                      <label className="flex items-center gap-2">
+                        <Toggle label={`${o.name} always on top`} checked={p?.alwaysOnTop ?? false} onChange={(v) => void overlays.update(o.label, { alwaysOnTop: v })} />
+                        Always on top
+                      </label>
+                    )}
                     <label className="flex items-center gap-2">
                       Opacity
                       <input
