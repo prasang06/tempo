@@ -16,7 +16,8 @@ import { timer as timerApi } from "@/services/api";
 import { clock, duration, KIND_LABEL } from "@/lib/time";
 import { addDays, dayKey, longDate, startOfDay, startOfWeek, timeOfDay, weekday } from "@/lib/dates";
 import { isOpen, todayTasks } from "@/lib/tasks";
-import type { Profile, SessionKind, Settings } from "@/types";
+import type { Profile, SessionKind } from "@/types";
+import { profileMs } from "@/lib/profiles";
 
 const PROFILES: { value: Profile; label: string; hint: string }[] = [
   { value: "classic", label: "Classic", hint: "25 min focus · 5 min break" },
@@ -26,18 +27,6 @@ const PROFILES: { value: Profile; label: string; hint: string }[] = [
 ];
 
 const KINDS: SessionKind[] = ["focus", "short_break", "long_break"];
-
-const PRESETS: Record<Exclude<Profile, "custom">, [number, number, number]> = {
-  classic: [25, 5, 15],
-  deep: [50, 10, 20],
-  extended: [90, 15, 30],
-};
-
-/** Length a session of `kind` gets under the current settings (mirrors the backend). */
-function profileMs(t: Settings["timer"], kind: SessionKind): number {
-  const [f, s, l] = t.profile === "custom" ? [t.focusMin, t.shortBreakMin, t.longBreakMin] : PRESETS[t.profile];
-  return (kind === "focus" ? f : kind === "short_break" ? s : l) * 60_000;
-}
 
 export function FocusPage({ onNavigate }: { onNavigate: (p: Page) => void }) {
   const { snapshot, remaining, progress, toggle, reset, skip, run } = useTimerView();

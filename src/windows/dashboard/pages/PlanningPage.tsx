@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Task } from "@/types";
 import { Button, Checkbox, cx, IconButton, Kbd } from "@/components/common/ui";
@@ -125,8 +125,14 @@ export function PlanningPage() {
           <div>
             <h1 className="display text-[26px]">Planning</h1>
             <p className="mt-1 hidden items-center gap-1.5 text-[12.5px] text-ink-3 lg:flex">
-              Drag tasks onto a day, or select one and use <Kbd>←</Kbd>
-              <Kbd>→</Kbd> <Kbd>T</Kbd> today <Kbd>U</Kbd> unschedule
+              Drag tasks onto a day, or select one and use{" "}
+              <Kbd>
+                <ArrowLeft size={10} />
+              </Kbd>
+              <Kbd>
+                <ArrowRight size={10} />
+              </Kbd>{" "}
+              <Kbd>T</Kbd> today <Kbd>U</Kbd> unschedule
             </p>
           </div>
           <div className="flex items-center gap-1">

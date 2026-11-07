@@ -26,7 +26,7 @@ const GROUPS: { title: string; keys: [string, string][] }[] = [
       ["X", "Toggle done"],
       ["F", "Focus on task"],
       ["E / Enter", "Edit"],
-      ["Alt ↑ / ↓", "Reorder"],
+      ["Alt + Up / Down", "Reorder"],
       ["Del", "Delete"],
       ["Esc", "Clear selection"],
     ],

@@ -19,6 +19,15 @@ export function duration(ms: number): string {
   return m === 0 ? `${h}h` : `${h}h ${m}m`;
 }
 
+/** Tighter form for narrow columns: "26m", "1h30", "2h". */
+export function shortDuration(ms: number): string {
+  const mins = Math.round(ms / 60_000);
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `${m}m`;
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, "0")}`;
+}
+
 export function minutesLabel(min: number | null | undefined): string {
   if (!min) return "";
   return duration(min * 60_000);

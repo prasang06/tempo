@@ -176,6 +176,9 @@ fn build(app: &AppHandle, spec: OverlaySpec, prefs: &OverlayPrefs) -> AppResult<
         b = b.position(f64::from(x), f64::from(y));
     }
     let win = b.build()?;
+    // GTK sizes a fresh webview to at least 200×200; shrink it to the size we asked for.
+    #[cfg(target_os = "linux")]
+    shrink_to(&win, w, h, spec.resizable);
     if let (Some(x), Some(y), false) = (prefs.x, prefs.y, is_wayland()) {
         // Builder position is logical; re-apply physical to survive scale factors.
         let _ = win.set_position(PhysicalPosition::new(x, y));
@@ -229,6 +232,26 @@ fn native_window_menu(win: &WebviewWindow) {
     });
     if let Err(e) = result {
         log::warn!("could not hook overlay right-click: {e}");
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn shrink_to(win: &WebviewWindow, w: f64, h: f64, resizable: bool) {
+    use gtk::prelude::*;
+    let (w, h) = (w.round() as i32, h.round() as i32);
+    let result = win.with_webview(move |wv| {
+        let view = wv.inner();
+        view.set_size_request(1, 1);
+        if let Some(top) = view.toplevel().and_then(|t| t.downcast::<gtk::Window>().ok()) {
+            // A fixed-size window takes its size request as its size.
+            if !resizable {
+                top.set_size_request(w, h);
+            }
+            top.resize(w, h);
+        }
+    });
+    if let Err(e) = result {
+        log::warn!("could not size overlay: {e}");
     }
 }
 

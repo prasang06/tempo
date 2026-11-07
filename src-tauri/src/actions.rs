@@ -60,6 +60,26 @@ impl Action {
     }
 }
 
+pub const PAGES: [&str; 5] = ["focus", "tasks", "planning", "insights", "settings"];
+pub const NAVIGATE_EVENT: &str = "app://navigate";
+
+/// Reads `--page <name>` (or `--page=<name>`): open the main window on that section.
+pub fn page_from_args<S: AsRef<str>>(args: &[S]) -> Option<&'static str> {
+    let mut it = args.iter().map(AsRef::as_ref);
+    while let Some(a) = it.next() {
+        let v = if a == "--page" { it.next() } else { a.strip_prefix("--page=") };
+        if let Some(v) = v {
+            return PAGES.into_iter().find(|p| *p == v);
+        }
+    }
+    None
+}
+
+pub fn open_page(app: &AppHandle, page: &str) {
+    crate::windows::show_main(app);
+    let _ = tauri::Emitter::emit_to(app, "main", NAVIGATE_EVENT, page);
+}
+
 pub fn dispatch(app: &AppHandle, action: Action) {
     let state = app.state::<AppState>();
     let result = match action {
@@ -89,5 +109,12 @@ mod tests {
         assert_eq!(Action::from_args(&["tempo", "--action=toggle-floating"]), Some(Action::ToggleFloating));
         assert_eq!(Action::from_args(&["tempo", "--action", "nope"]), None);
         assert_eq!(Action::from_args(&["tempo"]), None);
+    }
+
+    #[test]
+    fn parses_pages() {
+        assert_eq!(page_from_args(&["tempo", "--page", "insights"]), Some("insights"));
+        assert_eq!(page_from_args(&["tempo", "--page=tasks"]), Some("tasks"));
+        assert_eq!(page_from_args(&["tempo", "--page", "nope"]), None);
     }
 }

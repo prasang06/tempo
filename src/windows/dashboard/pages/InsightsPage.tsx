@@ -193,13 +193,13 @@ export function InsightsPage() {
           {estimates.length === 0 ? (
             <p className="text-[12.5px] text-ink-3">Give tasks an estimate and focus on them to compare.</p>
           ) : (
-            <table className="w-full text-[12.5px]">
+            <table className="w-full table-fixed text-[12.5px]">
               <thead>
                 <tr className="text-left text-[10.5px] text-ink-3">
                   <th className="pb-1.5 font-normal">Task</th>
-                  <th className="pb-1.5 text-right font-normal">Est.</th>
-                  <th className="pb-1.5 text-right font-normal">Actual</th>
-                  <th className="w-[64px] pb-1.5 text-right font-normal">Diff</th>
+                  <th className="w-[54px] pb-1.5 text-right font-normal">Est.</th>
+                  <th className="w-[64px] pb-1.5 text-right font-normal">Actual</th>
+                  <th className="w-[68px] pb-1.5 text-right font-normal">Diff</th>
                 </tr>
               </thead>
               <tbody>
@@ -207,7 +207,7 @@ export function InsightsPage() {
                   const diff = act - est;
                   return (
                     <tr key={task.id} className="border-t border-line/70">
-                      <td className="max-w-0 truncate py-1.5 pr-3 text-ink-2">{task.title}</td>
+                      <td className="truncate py-1.5 pr-3 text-ink-2" title={task.title}>{task.title}</td>
                       <td className="num py-1.5 text-right text-[11px] text-ink-3">{duration(est)}</td>
                       <td className="num py-1.5 text-right text-[11px]">{duration(act)}</td>
                       <td className={cx("num py-1.5 text-right text-[11px]", diff > 0 ? "text-ink" : "text-ink-3")}>

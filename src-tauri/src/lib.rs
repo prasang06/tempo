@@ -45,9 +45,14 @@ pub fn run() {
     tauri::Builder::default()
         // Must be first: a second launch forwards its argv here and exits, so there is
         // only ever one process and one timer.
-        .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| match Action::from_args(&argv) {
-            Some(action) => actions::dispatch(app, action),
-            None => windows::show_main(app),
+        .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
+            if let Some(action) = Action::from_args(&argv) {
+                actions::dispatch(app, action);
+            } else if let Some(page) = actions::page_from_args(&argv) {
+                actions::open_page(app, page);
+            } else {
+                windows::show_main(app);
+            }
         }))
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
@@ -107,6 +112,13 @@ pub fn run() {
                 });
                 if !hidden {
                     main.show()?;
+                }
+                if let Some(page) = actions::page_from_args(&args) {
+                    // The webview isn't listening yet at startup; it reads this query instead.
+                    let url = main.url()?;
+                    let mut url = url.clone();
+                    url.set_query(Some(&format!("page={page}")));
+                    main.navigate(url)?;
                 }
             }
             if let Some(action) = Action::from_args(&args) {

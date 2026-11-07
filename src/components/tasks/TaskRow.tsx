@@ -2,7 +2,7 @@ import { Crosshair } from "lucide-react";
 import { forwardRef } from "react";
 import type { Project, Task, TaskActual } from "@/types";
 import { Checkbox, cx } from "@/components/common/ui";
-import { duration, minutesLabel } from "@/lib/time";
+import { duration, minutesLabel, shortDuration } from "@/lib/time";
 import { relativeDay } from "@/lib/dates";
 import { isOverdue } from "@/lib/tasks";
 
@@ -56,21 +56,21 @@ export const TaskRow = forwardRef<HTMLDivElement, Props>(function TaskRow(
       <span className={cx("min-w-0 flex-1 truncate", dense ? "text-[13px]" : "text-[13.5px]", done && "text-ink-3 line-through decoration-ink-3")}>
         {task.title}
       </span>
-      <span className="flex shrink-0 items-center gap-3 text-[11.5px] text-ink-3">
+      <span className={cx("flex shrink-0 items-center text-[11.5px] text-ink-3", dense ? "gap-2" : "gap-3")}>
         {project && (
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5" title={project.name}>
             <span className="size-[6px] rounded-full" style={{ background: project.color }} />
-            <span className="max-w-[110px] truncate">{project.name}</span>
+            {!dense && <span className="max-w-[110px] truncate">{project.name}</span>}
           </span>
         )}
         {showDate && date && <span className={cx(overdue && "text-danger")}>{relativeDay(date, today)}</span>}
         {!showDate && overdue && task.dueDate && <span className="text-danger">due {relativeDay(task.dueDate, today)}</span>}
         <PriorityMark priority={task.priority} />
         {(task.estimateMin || actual) && (
-          <span className="num w-[76px] text-right text-[10.5px]">
-            {actual && actual.focusMs > 0 ? <span className="text-ink-2">{duration(actual.focusMs)}</span> : null}
-            {actual && actual.focusMs > 0 && task.estimateMin ? " / " : ""}
-            {task.estimateMin ? minutesLabel(task.estimateMin) : ""}
+          <span className={cx("num whitespace-nowrap text-right text-[10.5px]", dense ? "min-w-[34px]" : "min-w-[76px]")}>
+            {actual && actual.focusMs > 0 ? <span className="text-ink-2">{(dense ? shortDuration : duration)(actual.focusMs)}</span> : null}
+            {actual && actual.focusMs > 0 && task.estimateMin ? (dense ? "/" : " / ") : ""}
+            {task.estimateMin ? (dense ? shortDuration(task.estimateMin * 60_000) : minutesLabel(task.estimateMin)) : ""}
           </span>
         )}
         {onFocus && !done && (

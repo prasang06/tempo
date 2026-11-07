@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { on } from "@/services/api";
 import { Sidebar, PAGES, type Page } from "@/components/navigation/Sidebar";
 import { ErrorNote } from "@/components/common/ui";
 import { useHotkeys } from "@/hooks/useHotkeys";
@@ -15,7 +16,10 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { ShortcutHelp } from "./ShortcutHelp";
 
 export default function Dashboard() {
-  const [page, setPage] = useState<Page>("focus");
+  const [page, setPage] = useState<Page>(() => {
+    const requested = new URLSearchParams(window.location.search).get("page");
+    return PAGES.find((p) => p.id === requested)?.id ?? "focus";
+  });
   const [help, setHelp] = useState(false);
   const settings = useSettings((s) => s.settings);
   const dataError = useData((s) => s.error);
@@ -26,6 +30,12 @@ export default function Dashboard() {
     void useSettings.getState().init();
     void useOverlays.getState().init();
     void useTimer.getState().init();
+    // `tempo --page insights` from the command line or a launcher.
+    const off = on<string>("app://navigate", (p) => {
+      const found = PAGES.find((x) => x.id === p);
+      if (found) setPage(found.id);
+    });
+    return () => void off.then((f) => f());
   }, []);
   useTheme(settings?.appearance.theme);
 

@@ -5,6 +5,7 @@ import { useSettings } from "@/stores/settings";
 import { useOverlays } from "@/stores/overlays";
 import { EVENTS, errorMessage, on, overlays as overlayApi, settings as settingsApi, system } from "@/services/api";
 import type { ActionName, OverlayLabel, SessionInfo, Settings, ShortcutStatus } from "@/types";
+import { profileMinutes } from "@/lib/profiles";
 
 const SECTIONS = [
   ["appearance", "Appearance"],
@@ -126,6 +127,8 @@ export function SettingsPage() {
     });
   const t = settings.timer;
   const custom = t.profile === "custom";
+  // Presets show their own durations; only Custom's are editable.
+  const [focusMin, shortMin, longMin] = profileMinutes(t);
 
   const run = async (fn: () => Promise<unknown>, done: (r: unknown) => string | null) => {
     try {
@@ -196,13 +199,13 @@ export function SettingsPage() {
             </Row>
             <div className={cx(!custom && "pointer-events-none opacity-40")} aria-disabled={!custom}>
               <Row title="Focus" hint={!custom ? "Switch to Custom to edit durations." : undefined}>
-                <Stepper label="Focus minutes" value={t.focusMin} min={1} max={240} step={5} suffix="min" onChange={(v) => set((s) => void (s.timer.focusMin = v))} />
+                <Stepper label="Focus minutes" value={focusMin} min={1} max={240} step={5} suffix="min" onChange={(v) => set((s) => void (s.timer.focusMin = v))} />
               </Row>
               <Row title="Short break">
-                <Stepper label="Short break minutes" value={t.shortBreakMin} min={1} max={120} suffix="min" onChange={(v) => set((s) => void (s.timer.shortBreakMin = v))} />
+                <Stepper label="Short break minutes" value={shortMin} min={1} max={120} suffix="min" onChange={(v) => set((s) => void (s.timer.shortBreakMin = v))} />
               </Row>
               <Row title="Long break">
-                <Stepper label="Long break minutes" value={t.longBreakMin} min={1} max={120} step={5} suffix="min" onChange={(v) => set((s) => void (s.timer.longBreakMin = v))} />
+                <Stepper label="Long break minutes" value={longMin} min={1} max={120} step={5} suffix="min" onChange={(v) => set((s) => void (s.timer.longBreakMin = v))} />
               </Row>
             </div>
             <Row title="Long break every">
